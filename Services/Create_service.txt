@@ -1,0 +1,9 @@
+begin
+DBMS_SERVICE.CREATE_SERVICE(
+    service_name => 'CustomerManagement', 
+    network_name => 'Customer_Service', 
+    aq_queues    => 'customer_queue', 
+    parallel     => TRUE
+);
+end;
+/

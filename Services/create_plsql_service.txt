@@ -1,0 +1,42 @@
+--Use the Service in Your PL/SQL Block
+--When you want to assign a specific PL/SQL block to use this dedicated service, you can use the DBMS_SESSION package to set the current session's service to CustomerManagement:
+
+create or replace procedure prc_set_service as
+    v_customer_id NUMBER;
+    v_product_id NUMBER := 101; -- Assume product ID 101
+    v_quantity NUMBER := 2;
+    v_total_cost NUMBER;
+    v_book_price NUMBER;
+BEGIN
+    -- Switch the session to use the dedicated service for managing customers
+    DBMS_SESSION.SET_SERVICE('CustomerManagement');
+    
+    -- Start a transaction to ensure all operations are atomic
+    SAVEPOINT start_transaction;
+    
+    -- Example: Inserting a new customer record
+    INSERT INTO customers (customer_id, first_name, last_name, email_office, email_personal, family_members)
+    VALUES (customer_seq.NEXTVAL, 'John', 'Doe', 'john.doe@company.com', 'john.doe@gmail.com', 4)
+    RETURNING customer_id INTO v_customer_id;
+
+    -- Example: Fetch product price and calculate total cost
+    SELECT book_price INTO v_book_price
+    FROM products
+    WHERE product_id = v_product_id
+    FOR UPDATE;
+
+    v_total_cost := v_book_price * v_quantity;
+    
+    -- Insert product purchase record
+    INSERT INTO product_purchases (customer_id, product_id, quantity, total_cost)
+    VALUES (v_customer_id, v_product_id, v_quantity, v_total_cost);
+
+    -- Commit the transaction
+    COMMIT;
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Rollback in case of any error
+        ROLLBACK TO start_transaction;
+        RAISE;
+END;
+/

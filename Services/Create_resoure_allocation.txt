@@ -1,0 +1,19 @@
+--Configure Service Goals using Oracle Resource Manager (RM)
+--You can configure resource allocation goals (such as CPU and I/O limits) for the CustomerManagement service by setting up Oracle Resource Manager plans.
+
+
+BEGIN
+  DBMS_RESOURCE_MANAGER.CREATE_PLAN(
+    plan => 'CustomerManagementPlan',
+    comment => 'Plan to manage resources for customer-related operations'
+  );
+  
+  DBMS_RESOURCE_MANAGER.CREATE_PLAN_DIRECTIVE(
+    plan => 'CustomerManagementPlan',
+    group_or_subplan => 'CustomerGroup',
+    consumer_group => 'CustomerGroup',
+    mgmt_p1 => 'CPU', 
+    mgmt_p2 => 75 -- Allocate 75% of CPU to this service
+  );
+END;
+/
